@@ -1,13 +1,15 @@
 package ru.kata.spring.boot_security.demo.models;
 
 
+import org.springframework.stereotype.Component;
+
 import javax.persistence.*;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-
+@Component
 @Entity
 @Table(name = "User")
 public class User {
@@ -35,7 +37,7 @@ public class User {
         this.role = role;
     }
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
