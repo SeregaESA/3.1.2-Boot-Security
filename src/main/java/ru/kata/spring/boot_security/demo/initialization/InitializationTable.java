@@ -1,21 +1,24 @@
 package ru.kata.spring.boot_security.demo.initialization;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ru.kata.spring.boot_security.demo.dao.RoleDao;
+import ru.kata.spring.boot_security.demo.dao.UserDao;
 import ru.kata.spring.boot_security.demo.models.Role;
 import ru.kata.spring.boot_security.demo.models.User;
-import ru.kata.spring.boot_security.demo.repositories.RoleRepository;
-import ru.kata.spring.boot_security.demo.repositories.UserRepository;
 
+import javax.annotation.PostConstruct;
 import java.util.HashSet;
 import java.util.Set;
 
 @Component
 public class InitializationTable {
 
-    private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
+    private final UserDao userRepository;
+    private final RoleDao roleRepository;
 
-    public InitializationTable(UserRepository userRepository, RoleRepository roleRepository) {
+    @Autowired
+    public InitializationTable(UserDao userRepository, RoleDao roleRepository) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
     }
@@ -28,6 +31,7 @@ public class InitializationTable {
     Set<Role> setAdmin = new HashSet<>();
     Set<Role> setUser = new HashSet<>();
 
+    @PostConstruct
     public void initializationTable() {
         roleRepository.save(roleAdmin);
         roleRepository.save(roleUser);

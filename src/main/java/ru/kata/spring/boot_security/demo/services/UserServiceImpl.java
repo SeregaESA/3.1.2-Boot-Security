@@ -1,71 +1,91 @@
 package ru.kata.spring.boot_security.demo.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import ru.kata.spring.boot_security.demo.dao.UserDao;
 import ru.kata.spring.boot_security.demo.models.Role;
 import ru.kata.spring.boot_security.demo.models.User;
-import ru.kata.spring.boot_security.demo.repositories.RoleRepository;
-import ru.kata.spring.boot_security.demo.repositories.UserRepository;
-import ru.kata.spring.boot_security.demo.security.UserService;
+import ru.kata.spring.boot_security.demo.security.UserDetailsImpl;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
-
 @Service
-public class Services {
+public class UserServiceImpl implements UserService, UserDetailsService {
 
-    private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final UserDao userDao;
+    private final PasswordEncoder passwordEncoder;
+    private final RoleService roleService;
 
     @Autowired
-    public Services(UserRepository userRepository, RoleRepository roleRepository) {
-        this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
+    @Lazy
+    public UserServiceImpl(UserDao userDao, PasswordEncoder passwordEncoder, RoleService roleService) {
+        this.userDao = userDao;
+        this.passwordEncoder = passwordEncoder;
+        this.roleService = roleService;
     }
 
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        Optional<User> user = userDao.findByUsername(username);
+        if (user.isEmpty()) {
+            throw new UsernameNotFoundException("User not found");
+        }
+        return new UserDetailsImpl(user.get());
+    }
+
+    @Override
     public List<User> getAllUsers() {
-        return userRepository.findAll();
+        return userDao.findAll();
     }
 
+    @Override
     public void save(User user) {
-        userRepository.save(user);
+        userDao.save(user);
     }
 
+    @Override
     public void delete(Long id) {
-        userRepository.deleteById(id);
+        userDao.deleteById(id);
     }
 
+    @Override
     public User getOne(Long id) {
-        return userRepository.findById(id).get();
+        return userDao.findById(id).get();
     }
 
+    @Override
     public void update(Long id, User user) {
-        User oldUser = userRepository.findById(id).get();
+        User oldUser = userDao.findById(id).get();
         oldUser.setUsername(user.getUsername());
         oldUser.setLastName(user.getLastName());
         oldUser.setAge(user.getAge());
         oldUser.setPassword(user.getPassword());
         oldUser.setRoles(user.getRoles());
-        userRepository.save(oldUser);
+        userDao.save(oldUser);
     }
 
-    public Role getRole(String role) {
-        return roleRepository.findByName(role);
-    }
-
+    @Override
     public User oneUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserService userService = (UserService) authentication.getPrincipal();
+        UserDetailsImpl userService = (UserDetailsImpl) authentication.getPrincipal();
         return userService.getUser();
     }
 
+    public Role getRole(String role) {
+        return roleService.findByName(role);
+    }
+
+    @Override
     public User createUser(User user, List<String> roles) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         Set<Role> roleSet = new HashSet<>();
@@ -79,6 +99,7 @@ public class Services {
         return user;
     }
 
+    @Override
     public User updateUser(User user, List<String> roles, Long id) {
         User oldUser = getOne(id);
         String oldPassword = oldUser.getPassword();
