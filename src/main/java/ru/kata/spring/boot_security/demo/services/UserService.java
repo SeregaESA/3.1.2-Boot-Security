@@ -1,8 +1,10 @@
 package ru.kata.spring.boot_security.demo.services;
 
+import ru.kata.spring.boot_security.demo.models.Role;
 import ru.kata.spring.boot_security.demo.models.User;
 
 import java.util.List;
+import java.util.Set;
 
 public interface UserService {
     List<User> getAllUsers();
@@ -17,8 +19,8 @@ public interface UserService {
 
     User oneUser();
 
-    User createUser(User user, List<String> roles);
+    User createUser(User user, Set<Role> roles);
 
-    User updateUser(User user, List<String> roles, Long id);
+    User updateUser(User user, Set<Role> roles, Long id);
 
 }

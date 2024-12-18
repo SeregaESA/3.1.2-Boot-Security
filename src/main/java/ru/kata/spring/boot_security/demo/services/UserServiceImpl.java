@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import ru.kata.spring.boot_security.demo.dao.UserDao;
 import ru.kata.spring.boot_security.demo.models.Role;
 import ru.kata.spring.boot_security.demo.models.User;
-import ru.kata.spring.boot_security.demo.security.UserDetailsImpl;
 
 import java.util.HashSet;
 import java.util.List;
@@ -40,7 +39,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         if (user.isEmpty()) {
             throw new UsernameNotFoundException("User not found");
         }
-        return new UserDetailsImpl(user.get());
+        return user.get();
     }
 
     @Override
@@ -77,8 +76,8 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     @Override
     public User oneUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserDetailsImpl userService = (UserDetailsImpl) authentication.getPrincipal();
-        return userService.getUser();
+        UserDetails userService = (UserDetails) authentication.getPrincipal();
+        return (User) authentication.getPrincipal();
     }
 
     public Role getRole(String role) {
@@ -86,11 +85,11 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
-    public User createUser(User user, List<String> roles) {
+    public User createUser(User user, Set<Role> roles) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         Set<Role> roleSet = new HashSet<>();
-        for (String role : roles) {
-            Role newRole = getRole(role);
+        for (Role role : roles) {
+            Role newRole = role;
             if (newRole != null) {
                 roleSet.add(newRole);
             }
@@ -100,7 +99,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
-    public User updateUser(User user, List<String> roles, Long id) {
+    public User updateUser(User user, Set<Role> roles, Long id) {
         User oldUser = getOne(id);
         String oldPassword = oldUser.getPassword();
         String newPassword = user.getPassword();
@@ -117,8 +116,8 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         if (roles == null || roles.isEmpty()) {
             roleSet = oldUser.getRoles();
         } else {
-            for (String role : roles) {
-                Role newRole = getRole(role);
+            for (Role role : roles) {
+                Role newRole = role;
                 if (newRole != null) {
                     roleSet.add(newRole);
                 }

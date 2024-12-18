@@ -7,10 +7,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import ru.kata.spring.boot_security.demo.models.Role;
 import ru.kata.spring.boot_security.demo.models.User;
 import ru.kata.spring.boot_security.demo.services.UserService;
 
-import java.util.List;
+import java.util.Set;
 
 @Controller
 public class AdminController {
@@ -31,7 +32,7 @@ public class AdminController {
     }
 
     @PostMapping("/create")
-    public String createUser(@ModelAttribute User user, @RequestParam("role") List<String> roles) {
+    public String createUser(@ModelAttribute User user, @RequestParam(value = "role") Set<Role> roles) {
         userService.save(userService.createUser(user, roles));
         return "redirect:/admin/";
     }
@@ -49,7 +50,7 @@ public class AdminController {
     }
 
     @PostMapping(value = "/update")
-    public String update(@ModelAttribute("user") User user, @RequestParam("id") long id, @RequestParam(value = "role") List<String> roles) {
+    public String update(@ModelAttribute("user") User user, @RequestParam("id") long id, @RequestParam(value = "role", required = false) Set<Role> roles) {
         userService.update(id, userService.updateUser(user, roles, id));
         return "redirect:/admin/";
     }

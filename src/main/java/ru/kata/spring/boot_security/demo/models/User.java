@@ -1,18 +1,19 @@
 package ru.kata.spring.boot_security.demo.models;
 
 
-import org.springframework.stereotype.Component;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
-import java.util.List;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Component
+
 @Entity
 @Table(name = "User")
-public class User {
+public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,17 +26,6 @@ public class User {
     private Byte age;
 
     private String password;
-
-    @Transient
-    private List<String> role;
-
-    public List<String> getRole() {
-        return role;
-    }
-
-    public void setRole(List<String> role) {
-        this.role = role;
-    }
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -91,6 +81,7 @@ public class User {
         this.lastName = lastName;
     }
 
+
     public String getPassword() {
         return password;
     }
@@ -106,6 +97,32 @@ public class User {
     public void setAge(Byte age) {
         this.age = age;
     }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return getRoles();
+    }
+
 
     @Override
     public String toString() {
